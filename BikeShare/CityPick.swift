@@ -1,66 +1,76 @@
 //
 //  CityPick.swift
-//  BikeShare
+//  BikemapAJ
 //
-//  Created by Kardan on 07/10/2020.
+//  Created by jassak on 10/02/2021.
+//  Copyright © 2021 jassak1. All rights reserved.
 //
 
 import SwiftUI
 
-class LongLat:ObservableObject{
+class Location:ObservableObject{
+    @Published var showStations=false
+    @Published var mapDelta=1.0
+    @Published var title=String()
     @Published var longitude=Double()
     @Published var latitude=Double()
-    @Published var address=String()
-    @Published var arrvalue=Int(){
+    @Published var url=String()
+    @Published var element=Int(){
         didSet{
-            UserDefaults.standard.setValue(arrvalue, forKey: "arvv")
+            UserDefaults.standard.setValue(element, forKey: "element")
             swapLocation()
         }
     }
     
     func swapLocation() {
-        switch arrvalue {
+        mapDelta=1.0
+        switch element {
         case 0:
-            longitude=48.148680
-            latitude=17.107018
-            address="http://api.citybik.es/v2/networks/whitebikes?fields=stations"
+            title="Wien"
+            latitude=48.19360
+            longitude=16.369754
+            url="http://api.citybik.es/v2/networks/citybike-wien?fields=stations"
         case 1:
-            longitude=48.306119
-            latitude=18.076208
-            address="http://api.citybik.es/v2/networks/arriva-nitra?fields=stations"
+            title="Bratislava"
+            latitude=48.148680
+            longitude=17.107018
+            url="http://api.citybik.es/v2/networks/whitebikes?fields=stations"
         case 2:
-            longitude=49.219282
-            latitude=18.740761
-            address="http://api.citybik.es/v2/networks/bikekia-zilina?fields=stations"
+            title="Nitra"
+            latitude=48.306119
+            longitude=18.076208
+            url="http://api.citybik.es/v2/networks/arriva-nitra?fields=stations"
         case 3:
-            longitude=48.991844
-            latitude=21.241220
-            address="http://api.citybik.es/v2/networks/bicyklezadobreskutky?fields=stations"
+            title="Zilina"
+            latitude=49.219282
+            longitude=18.740761
+            url="http://api.citybik.es/v2/networks/bikekia-zilina?fields=stations"
         default:
-            longitude=49.219282
-            latitude=18.740761
-            address="http://api.citybik.es/v2/networks/bikekia-zilina?fields=stations"
+            title="Zilina"
+            latitude=49.219282
+            longitude=18.740761
+            url="http://api.citybik.es/v2/networks/bikekia-zilina?fields=stations"
         }
     }
     
     init() {
-        arrvalue=UserDefaults.standard.integer(forKey: "arvv")
+        element=UserDefaults.standard.integer(forKey: "element")
     }
 }
 
 
 struct CityPick: View {
-    let cities=["Bratislava","Nitra","Zilina","Presov"]
-    let stationm=[99,9,20,6]
-    @ObservedObject var longila=LongLat()
+    let cities=["Wien","Bratislava","Nitra","Zilina"]
+    let capacity=[120,102,9,20]    //number of stations in each city (could be replaced by count of array elements from network call and showing redacted in UI while loading, but to keep it clean i've choosen to list the count manually)
+    @ObservedObject var location=Location()
     var body: some View {
         NavigationView {
             ZStack {
                 Color("background")
-                    .edgesIgnoringSafeArea(/*@START_MENU_TOKEN@*/.all/*@END_MENU_TOKEN@*/)
+                    .edgesIgnoringSafeArea(.all)
                 VStack {
                     Text("Select a city")
-                    Picker("",selection: $longila.arrvalue){
+                    Picker("",selection: $location.element){
                         ForEach(0..<cities.count){
                             Text("\(cities[$0])")
                         }
@@ -68,7 +78,7 @@ struct CityPick: View {
                     .pickerStyle(SegmentedPickerStyle())
                     .padding()
                     NavigationLink(
-                        destination: Stations(urlad: longila),
+                        destination: Stations(location: location), isActive: $location.showStations,
                         label: {
                             HStack{
                                 Rectangle()
@@ -78,11 +88,11 @@ struct CityPick: View {
                                     .shadow(color: .black, radius: 2, x: -2, y: -2)
                                     .overlay(
                                         HStack{
-                                            Image(decorative: cities[longila.arrvalue])
+                                            Image(decorative: cities[location.element])     // decorative keyword to turn off voiceover for image names
                                                 .resizable()
                                                 .aspectRatio(contentMode: .fit)
                                                 .padding(5)
-                                            Text(cities[longila.arrvalue])
+                                            Text(cities[location.element])
                                                 .font(.title)
                                                 .fontWeight(.black)
                                                 .foregroundColor(.white)
@@ -94,7 +104,7 @@ struct CityPick: View {
                                                 .overlay(
                                                     HStack{
                                                         VStack{
-                                                            Text("\(stationm[longila.arrvalue])")
+                                                            Text("\(capacity[location.element])")
                                                                 .fontWeight(.black)
                                                             Text("stations")
                                                                 .font(.caption2)
@@ -110,20 +120,13 @@ struct CityPick: View {
                             }
                         })
                     
-                    MapView(getLoc: longila)
+                    MapView(location: location)
                         .cornerRadius(20)
                         .padding()
                 }
             }
             .navigationBarHidden(true) // inside bar hidden
         }
-        .navigationBarHidden(true)  // outside bar hiden - received
-    }
-    
-}
-
-struct CityPick_Previews: PreviewProvider {
-    static var previews: some View {
-        CityPick()
+        .navigationBarHidden(true)  // outside bar hidden - received
     }
 }

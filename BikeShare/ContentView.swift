@@ -1,18 +1,14 @@
 //
 //  ContentView.swift
-//  BikeShare
+//  BikemapAJ
 //
-//  Created by Kardan on 06/10/2020.
+//  Created by jassak on 10/02/2021.
+//  Copyright © 2021 jassak1. All rights reserved.
 //
 
 import SwiftUI
-import SwiftUIRefresh
-
-
-
 
 struct ContentView: View {
-    @State var zobraz=false
     var body: some View {
         NavigationView {
             ZStack {
@@ -22,7 +18,7 @@ struct ContentView: View {
                     Image(decorative: "bike")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                        .clipShape(/*@START_MENU_TOKEN@*/Circle()/*@END_MENU_TOKEN@*/)
+                        .clipShape(Circle())
                         .shadow(color: .black, radius: 7)
                         .padding(.top,50)
                     Spacer()
@@ -43,11 +39,5 @@ struct ContentView: View {
                 }
             }
         }
-    }
-}
-
-struct ContentView_Previews: PreviewProvider {
-    static var previews: some View {
-        ContentView()
     }
 }
